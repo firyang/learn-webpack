@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') // 将样式放入css文件中
 const OptimizeCss = require('optimize-css-assets-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const webpack = require('webpack')
 
 module.exports = {
   optimization: { // 优化项
@@ -17,9 +18,23 @@ module.exports = {
   },
   devServer: { // 开发服务器
     port: 3000,
-    progress: true,
     contentBase: './dist',
-    compress: true
+    // historyApiFallback: { // 返回404页面时定向到特定页面
+    //   rewrites:[
+    //     {from:/./, to:'/404.html'}
+    //   ]
+    // }, 
+    hot: true,
+    inline: true,
+    progress: false,
+    compress: true,
+    overlay: { // 在浏览器输出编译错误
+      warnings: true,
+      errors: true
+    },
+    stats: 'errors-only', // 控制编译的时候shell上的输出内容
+    open: false,
+    proxy:{}
   },
   mode: 'development', // 模式 默认两种 production development
   entry: './src/index.js', // 入口
@@ -40,8 +55,14 @@ module.exports = {
     }),
     new MiniCssExtractPlugin({
       filename: 'main.css'
+    }),
+    new webpack.ProvidePlugin({ // 在每个模块中注入第三方模块
+      $: 'jquery'
     })
   ],
+  externals: { // 打包时忽略第三方模块 
+    // jquery: "jQuery"
+  },
   module: { // 模块
     rules: [ // 规则
       // loader的特点 希望单一
@@ -49,6 +70,14 @@ module.exports = {
       // 多个loader需要 []
       // loader的顺序 默认是从右向左, 从下到上执行
       // 可写成对象
+
+      //---------------------------
+      // 引入第三方模块
+      // {
+      //   test: require.resolve('jquery'),
+      //   use: 'expose-loader?$'
+      // },
+
       //---------------------------
       // 代码校验
       // 安装 eslint eslint-loader
@@ -58,13 +87,14 @@ module.exports = {
         // exclude: /node_modules/,
         // loader: "eslint-loader"
       },
+
       //---------------------------
       // 处理js, es6,7 -> es5
       // babel-loader
       // @babel/preset-env es6 -> es5
       // @babel/plugin-proposal-decorators 类装饰器 -> es5
       // @babel/plugin-proposal-class-properties 类属性 -> es5
-      // @babel/plugin-transform-runtime
+      // @babel/plugin-transform-runtime 将高级实例方法转换es5
       // @babel/runtime --save
       // @babel/polyfill --save 将高级实例方法转换polyfill 安装后在脚本中引入require("@babel/polyfill")
       {
@@ -85,6 +115,7 @@ module.exports = {
         include: path.resolve(__dirname, 'src'),
         exclude: /node_modules/
       },
+
       // ---------------------------
       // 处理css
       // css-loader 解析@import这种语法
@@ -109,6 +140,7 @@ module.exports = {
           'postcss-loader',
         ]
       },
+
       // ---------------------------
       // 处理less文件 sass stylus
       { 
@@ -126,6 +158,31 @@ module.exports = {
           // less -> css
           'less-loader'
         ]
+      },
+
+      // ---------------------------
+      // 处理图片
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        use: {
+          // loader: 'url-loader',
+          // options: {
+          //   // 限制图片小于多少k时，用base64转化。否则用file-loader产生真实图片
+          //   limit: 20 * 1024
+            
+          // }
+          loader: 'url-loader',
+          options: {
+            limit: 10 * 1024
+          }
+        }
+      },
+
+      // ---------------------------
+      // 处理 <img src="./logo.png" />
+      {
+        test: /\.html$/,
+        use: 'html-withimg-loader'
       }
     ]
   }

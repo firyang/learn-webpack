@@ -1,3 +1,7 @@
+// import $ from 'expose-loader?$!jquery'
+import $ from 'jquery'
+
+console.log(window.$)
 
 require('./index.css')
 require('./index.less')
@@ -29,3 +33,8 @@ function * gen(params){
 console.log(gen().next(),'3333333')
 
 console.log('aaa'.includes('a'))
+
+  import logo from './logo.png'
+  let image = new Image()
+  image.src = logo
+  document.body.appendChild(image)
