@@ -27,7 +27,7 @@ module.exports = {
     }),
     new webpack.ProvidePlugin({ // 在每个模块中注入第三方模块
       $: 'jquery'
-    })
+    }),
     new webpack.IgnorePlugin(/\.\/locale/,/moment/) // 优化: 忽略moment中引入的'./locale'
   ],
   externals: { // 打包时忽略第三方模块 
